@@ -1,0 +1,514 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Japan 21-Day Itinerary v3.2 — English-labelled, with day-zones + accommodation gates</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+:root{--bg:#f6f5f0;--card:#fff;--text:#1c1c1c;--muted:#6e6a64;--rule:#e0dccf;--accent:#2563eb;--accent-2:#dc2626;--warn:#c14a3a;--ok:#3f6f3f;--lodging:#7d4f9c;}
+*{box-sizing:border-box}
+body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;margin:0;background:var(--bg);color:var(--text);line-height:1.55}
+header{padding:24px 28px;background:#fff;border-bottom:1px solid var(--rule)}
+h1{margin:0 0 6px;font-size:26px;letter-spacing:-.01em}
+h2{margin:32px 0 12px;font-size:21px}
+h3{margin:0 0 6px;font-size:17px}
+h4{margin:0 0 4px;font-size:14px}
+.container{max-width:1100px;margin:auto;padding:18px 22px 80px}
+.note{background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:12px 16px;margin:14px 0;font-size:14px}
+.note b{color:#9a3412}
+#overviewMap{height:62vh;min-height:440px;width:100%;border-radius:12px;border:1px solid var(--rule);background:#e9e3d3}
+.day{background:var(--card);border:1px solid var(--rule);border-radius:14px;margin:18px 0;overflow:hidden;scroll-margin-top:20px}
+.day-head{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:start;padding:16px 18px;border-bottom:1px solid var(--rule);background:#fdfcf7}
+.day-num{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:54px;width:54px;height:54px;border-radius:14px;background:#1c1c1c;color:#fff;font-weight:700;font-size:11px;letter-spacing:.04em;line-height:1.15}
+.day-num .n{font-size:20px;font-weight:700}
+.day-title-block .day-title{font-size:18px;font-weight:600;color:#1c1c1c}
+.day-title-block .day-base{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-top:2px}
+.day-flag{font-size:11px;letter-spacing:.05em;text-transform:uppercase;padding:4px 8px;border-radius:99px;color:#fff;background:var(--ok);align-self:start;white-space:nowrap}
+.day-flag.warn{background:var(--warn)}
+.day-body{padding:14px 18px 18px}
+.row{display:grid;grid-template-columns:1.3fr 1fr;gap:18px}
+@media (max-width:760px){.row{grid-template-columns:1fr}}
+.kv{margin:8px 0 12px}
+.kv .lab{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+.kv .val{font-size:14px;color:var(--text)}
+.kv.warn .val{color:var(--warn)}
+.kv.warn .lab{color:var(--warn)}
+.poi-list{margin:8px 0 0;padding-left:20px;font-size:14px}
+.poi-list li{margin:4px 0}
+.poi-list a{color:#0f4f9c;text-decoration:none}
+.poi-list a:hover{text-decoration:underline}
+.poi-list small{color:var(--muted);display:block;font-size:12px}
+.mini-map{height:240px;border-radius:10px;border:1px solid var(--rule);background:#e9e3d3}
+.mini-map .leaflet-bottom.leaflet-right{display:none} /* hide attribution overlap on tiny map */
+.lodging{background:#fbf6ff;border:2px dashed #b692d9;border-radius:14px;margin:18px 0;padding:18px 20px}
+.lodging-head{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.lodging-icon{width:36px;height:36px;background:var(--lodging);color:#fff;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.lodging-head h3{font-size:17px;color:#5a2d8c}
+.lodging-head .nights{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-left:auto}
+.lodging-summary{font-size:13px;color:var(--text);margin:6px 0 12px}
+.opt-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.opt{background:#fff;border:1px solid #d9c8ec;border-radius:10px;padding:12px 14px}
+.opt h4{font-size:14px;color:#3d1e6e;margin-bottom:6px}
+.opt .meta{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.opt .desc{font-size:13px;color:var(--text);line-height:1.45;margin-bottom:8px}
+.opt .links{display:flex;flex-wrap:wrap;gap:6px}
+.opt .links a{font-size:12px;background:var(--lodging);color:#fff;padding:5px 10px;border-radius:99px;text-decoration:none}
+.opt .links a:hover{background:#5a2d8c}
+.opt .links a.alt{background:transparent;color:var(--lodging);border:1px solid #d9c8ec}
+.opt .links a.alt:hover{background:#fbf6ff}
+.day-pin-marker{width:30px;height:30px;border-radius:8px;background:#1c1c1c;color:#fff;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.day-pin-marker.warn{background:var(--warn)}
+.poi-dot{width:14px;height:14px;border-radius:50%;background:var(--accent);border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.2)}
+.poi-dot.first{background:var(--accent-2)}
+.daynav{display:flex;flex-wrap:wrap;gap:5px;margin:12px 0 18px}
+.daynav a{font-size:12px;padding:5px 10px;background:#fff;border:1px solid var(--rule);border-radius:99px;color:var(--text);text-decoration:none;cursor:pointer}
+.daynav a:hover{background:#1c1c1c;color:#fff;border-color:#1c1c1c}
+.daynav a.warn{border-color:#f5c4ba;color:#a3382b}
+.daynav a.warn:hover{background:var(--warn);color:#fff;border-color:var(--warn)}
+.leaflet-popup-content-wrapper{border-radius:8px}
+.leaflet-popup-content{margin:8px 12px;font-size:13px;line-height:1.45}
+.leaflet-popup-content b{font-size:14px}
+footer{font-size:12px;color:var(--muted);margin-top:48px;border-top:1px solid var(--rule);padding-top:18px;line-height:1.6}
+footer code{font-family:ui-monospace,Menlo,monospace;background:#fff;padding:1px 5px;border-radius:4px;border:1px solid var(--rule);font-size:11px}
+</style>
+</head>
+<body>
+<header>
+<h1>Japan 21-Day Itinerary — v3.2</h1>
+<div style="font-size:13px;color:var(--muted)">English-labelled map · 21 day-zone bounding boxes · per-day overview + transit + static mini-map · accommodation choice gates between base changes</div>
+</header>
+
+<div class="container">
+
+<div class="note"><b>Sanity-rebalance applied.</b> The v3.1 dailyPlans had several days that were not realistic given Japanese transit times. Days 7, 11, 14, 15, 16, 17 and 18 have been redistributed; original POIs are preserved in the per-day notes when they were dropped or moved. Look for the <span style="color:var(--warn)">⚠</span> flag on day cards to see what changed and why.</div>
+
+<h2>Overview map — 21 day-zones across Japan</h2>
+<div id="overviewMap"></div>
+
+<h2>Jump to a day</h2>
+<nav class="daynav" id="dayNav"></nav>
+
+<h2>Daily breakdown</h2>
+<div id="dayList"></div>
+
+<footer>
+<div>v3.2 modifications vs v3.1: English Carto Voyager tiles · numbered day-zone rectangles on overview map · per-day overview + transit + static mini-map · accommodation transition boxes between base changes · sanity-checked + redistributed POIs.</div>
+<div style="margin-top:6px">Static mini-maps use Leaflet with all interaction disabled. Open the linked Google Maps for actual navigation.</div>
+</footer>
+
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const TILE_URL = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+const TILE_ATTRIB = '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> · &copy; <a href="https://carto.com/attributions">CARTO</a> (English labels)';
+
+const DAYS = [
+  {n:1, title:"Kamakura old town + Yuigahama", base:"Kamakura/Enoshima",
+   overview:"Settle into the coastal base. Walk Kamakura's main temples + shopping streets, end with sunset at Yuigahama beach.",
+   transit:"Tokyo→Kamakura by JR Shonan-Shinjuku or Yokosuka Line (~1 h). Within Kamakura: walking + Enoden short hops.",
+   pois:[
+    {name:"Kotoku-in (Great Buddha)",lat:35.3168,lng:139.5358,desc:"13 m bronze Amida from 1252; one of Japan's most iconic Buddha statues."},
+    {name:"Hase-dera",lat:35.3133,lng:139.5326,desc:"Hillside temple with Kannon hall, sea views, kid-friendly cave."},
+    {name:"Tsurugaoka Hachimangu",lat:35.3263,lng:139.5562,desc:"Major Shinto shrine; ceremonial heart of Kamakura."},
+    {name:"Komachi-dori",lat:35.3179,lng:139.5527,desc:"Main shopping street: street food, souvenirs, locals."},
+    {name:"Yuigahama Beach",lat:35.3047,lng:139.5447,desc:"Long sandy beach for sunset and quick swim."}
+   ]},
+  {n:2, title:"Enoshima Island full day", base:"Kamakura/Enoshima",
+   overview:"Slow day on Enoshima — shrine complex, sea caves, Sea Candle observatory, casual seafood by the harbour.",
+   transit:"Enoden Line one stop Kamakura→Enoshima or Hase→Enoshima (~10 min). All on foot on the island.",
+   pois:[
+    {name:"Enoshima Shrine",lat:35.2989,lng:139.4807,desc:"Three-shrine complex spanning the island."},
+    {name:"Iwaya Caves",lat:35.2960,lng:139.4775,desc:"Sea-cave complex on the western tip; lit lanterns inside."},
+    {name:"Enoshima Sea Candle",lat:35.2989,lng:139.4791,desc:"Observation tower with Sagami Bay + Mt Fuji views."},
+    {name:"Enoshima Aquarium (Enosui)",lat:35.3057,lng:139.4753,desc:"Outstanding jellyfish hall + Sagami Bay tank — mainland side."},
+    {name:"Katase Higashihama Beach",lat:35.3041,lng:139.4878,desc:"Mainland beach right at the bridge to Enoshima."}
+   ]},
+  {n:3, title:"Mount Oyama day-trip", base:"Kamakura/Enoshima",
+   overview:"Sacred mountain via cable car, with Afuri Shrine and viewpoints. Half-day excursion + pack-up evening.",
+   transit:"Odakyu Line Fujisawa→Isehara (~50 min) → bus to Oyama Cable (~30 min) → cable car up. Round trip ~3 h on top of sightseeing.",
+   pois:[
+    {name:"Mount Oyama",lat:35.4350,lng:139.2310,desc:"1252 m sacred peak; classic day-pilgrimage from Kanagawa."},
+    {name:"Oyama Afuri Shrine",lat:35.4419,lng:139.2362,desc:"Lower shrine reachable by cable car; upper shrine = 90 min hike."},
+    {name:"Oyama Cable",lat:35.4404,lng:139.2369,desc:"Cable car: Oyama-dera Station → Afuri-jinja Station."}
+   ],
+   accommodationAfter:"t1"},
+  {n:4, title:"Move to Tokyo · Ryogoku + Asakusa", base:"Tokyo",
+   overview:"Move base to Tokyo. Settle around the Sumida — sumo + Edo history museum (verify reopen status), Senso-ji + Skytree.",
+   transit:"Yokosuka Line Kamakura→Tokyo (~1 h). Then JR Sobu/Asakusa lines + Metro within Tokyo.",
+   pois:[
+    {name:"Edo-Tokyo Museum",lat:35.6964,lng:139.7958,desc:"⚠ Major closure for renovation — check status before going (planned 2026 reopen)."},
+    {name:"Ryogoku Kokugikan",lat:35.6967,lng:139.7937,desc:"Sumo arena; museum free even outside tournaments."},
+    {name:"Senso-ji Temple, Asakusa",lat:35.7148,lng:139.7967,desc:"Tokyo's oldest temple; Nakamise shopping street leading in."},
+    {name:"Tokyo Skytree",lat:35.7101,lng:139.8107,desc:"634 m tower; book ahead for Tembo Galleria observation deck."},
+    {name:"Yakiniku Gosyu",lat:35.6890,lng:139.6920,desc:"Restaurant note from your list — confirm exact branch before booking."}
+   ]},
+  {n:5, title:"Nikko day-trip — Toshogu + Kanmangafuchi", base:"Tokyo",
+   overview:"Long day-trip to Nikko: UNESCO Toshogu mausoleum + Jizo-statue river walk at Kanmangafuchi.",
+   transit:"Tobu SPACIA Limited Express Asakusa→Tobu-Nikko (~2 h). Bus + walking in Nikko. Return same evening (~2 h). ⚠ Long day — depart by 7:30 am.",
+   pois:[
+    {name:"Toshogu Shrine",lat:36.7581,lng:139.5985,desc:"Ornate UNESCO mausoleum of Tokugawa Ieyasu; 'see no/hear no/speak no evil' carving."},
+    {name:"Rinno-ji",lat:36.7570,lng:139.6010,desc:"Sandanbutsu hall — three giant gilded Buddhas."},
+    {name:"Kanmangafuchi Abyss",lat:36.7530,lng:139.6030,desc:"Riverside walk past 70 Jizo statues with red bibs."},
+    {name:"Shinkyo Bridge",lat:36.7536,lng:139.6047,desc:"Iconic vermilion bridge marking the entrance to the shrine area."}
+   ]},
+  {n:6, title:"Hakone day-trip — Owakudani + Lake Ashi", base:"Tokyo",
+   overview:"Light Hakone sample: volcanic vents, Lake Ashi pirate ship, vermilion torii in the lake. Mt Fuji on a clear day.",
+   transit:"Odakyu Romance Car Shinjuku→Hakone-Yumoto (~1.5 h). Buy Hakone Free Pass for cable car + ropeway + boat. Return same evening.",
+   pois:[
+    {name:"Hakone-Yumoto",lat:35.2330,lng:139.1059,desc:"Onsen town entry point + foot baths + souvenir streets."},
+    {name:"Owakudani",lat:35.2392,lng:139.0192,desc:"Active volcanic valley; black eggs cooked in sulphur springs."},
+    {name:"Lake Ashi (Hakone-jinja torii)",lat:35.1970,lng:139.0249,desc:"Lakeside vermilion gate — the iconic photo with Fuji behind."},
+    {name:"Hakone Open-Air Museum",lat:35.2456,lng:139.0531,desc:"Sculpture park including Picasso pavilion; kid-friendly hands-on works."}
+   ]},
+  {n:7, title:"⚠ Tokyo cultural day (rebalanced)", base:"Tokyo", warn:true,
+   overview:"⚠ ORIGINAL Day 7 was 'Gunma onsen day-trip' (Kusatsu/Minakami/Hoshi Onsen). Kusatsu is 3.5 h each way from Tokyo — not feasible as a day-trip. Replaced with a Tokyo cultural day. ALTERNATIVE: extend Day 6 Hakone into an overnight (skip this Tokyo day).",
+   transit:"All within Tokyo. JR + Metro. Walking distances easy.",
+   pois:[
+    {name:"Yanaka Ginza",lat:35.7281,lng:139.7666,desc:"Old shotengai; Showa-era atmosphere, fewer foreign tourists."},
+    {name:"Meiji Jingu",lat:35.6764,lng:139.6993,desc:"Forested Shinto shrine bordering Harajuku — green oasis."},
+    {name:"Shibuya Sky",lat:35.6586,lng:139.7019,desc:"360° rooftop above Shibuya Scramble — book ahead."},
+    {name:"Tsukiji Outer Market",lat:35.6655,lng:139.7711,desc:"Auctions moved to Toyosu but the food street is still alive."},
+    {name:"Akihabara",lat:35.7022,lng:139.7740,desc:"Electronics + anime + retro arcades district."}
+   ],
+   accommodationAfter:"t2"},
+  {n:8, title:"Move to Kyoto · Higashiyama evening", base:"Kyoto",
+   overview:"Move base to Kyoto. Afternoon Higashiyama walk: Kiyomizu, Sannenzaka/Ninenzaka, Yasaka Pagoda, into Gion at dusk.",
+   transit:"Tokyo→Kyoto Tokaido Shinkansen Nozomi/Hikari (~2.5 h). Then bus + walk in Higashiyama.",
+   pois:[
+    {name:"Kiyomizu-dera",lat:34.9949,lng:135.7851,desc:"Hillside temple with sweeping Kyoto views; main hall on stilts."},
+    {name:"Sannenzaka / Ninenzaka",lat:35.0010,lng:135.7825,desc:"Preserved cobbled stone lanes leading down from Kiyomizu."},
+    {name:"Yasaka Pagoda (Hokan-ji)",lat:35.0007,lng:135.7802,desc:"Iconic 5-story pagoda — best photographed from Yasaka-dori."},
+    {name:"Gion Hanamikoji",lat:35.0035,lng:135.7754,desc:"Main lane through the historic geisha district."}
+   ]},
+  {n:9, title:"Kibune + Kurama (north of Kyoto)", base:"Kyoto",
+   overview:"Mountain village with riverside dining + temple linked by a 2 h forest hike.",
+   transit:"Subway Kyoto→Demachiyanagi → Eizan Railway to Kibune-guchi or Kurama (~30 min). Hike between or take the bus.",
+   pois:[
+    {name:"Kibune Shrine",lat:35.1212,lng:135.7625,desc:"Water-deity shrine famous for its illuminated stone steps."},
+    {name:"Kifune Riverside (kawadoko)",lat:35.1212,lng:135.7625,desc:"Restaurants on platforms over the river; September often still serving."},
+    {name:"Kurama-dera",lat:35.1170,lng:135.7710,desc:"Mountain temple linked to Kibune by a 2 h pilgrimage trail."}
+   ]},
+  {n:10, title:"Uji + Fushimi (south of Kyoto)", base:"Kyoto",
+   overview:"Uji's Phoenix Hall + matcha + Fushimi Inari + sake district + aburi-mochi at Imamiya.",
+   transit:"JR Nara Line Kyoto→Uji (~25 min). Keihan Line back via Inari and Chushojima. Each leg ≤30 min.",
+   pois:[
+    {name:"Byodo-in Temple",lat:34.8893,lng:135.8076,desc:"UNESCO; the Phoenix Hall on the ¥10 coin."},
+    {name:"Fushimi Inari Taisha",lat:34.9671,lng:135.7727,desc:"Thousand vermilion torii gates climbing the mountain."},
+    {name:"Fushimi Jikkokubune",lat:34.9322,lng:135.7611,desc:"Seasonal canal boat through the Fushimi sake district."},
+    {name:"Kazariya Aburi Mochi",lat:35.0461,lng:135.7434,desc:"500-year-old mochi shop facing Imamiya Shrine."}
+   ]},
+  {n:11, title:"⚠ Arashiyama + Nijo (in-Kyoto, rebalanced)", base:"Kyoto", warn:true,
+   overview:"⚠ ORIGINAL Day 11 offered Amanohashidate + Ine — 6 h+ round-trip transit, brutal as a day-trip. Replaced with realistic in-Kyoto Arashiyama + Nijo. If you want Amanohashidate, it needs an overnight on Kyoto's north coast.",
+   transit:"JR Sagano Line Kyoto→Saga-Arashiyama (~15 min). City bus or subway back to Nijo Castle (~25 min). Walking otherwise.",
+   pois:[
+    {name:"Tenryu-ji",lat:35.0157,lng:135.6738,desc:"UNESCO Zen temple with garden against Mt Arashi."},
+    {name:"Arashiyama Bamboo Grove",lat:35.0169,lng:135.6716,desc:"The famous walking lane just behind Tenryu-ji."},
+    {name:"Otagi Nenbutsu-ji",lat:35.0307,lng:135.6485,desc:"1200 expressive stone rakan statues; quiet uphill walk in Arashiyama."},
+    {name:"Nijo Castle",lat:35.0143,lng:135.7475,desc:"UNESCO; nightingale floors, ornate Honmaru."}
+   ],
+   accommodationAfter:"t3"},
+  {n:12, title:"Move to Kanazawa · Kenrokuen + Higashi-Chaya", base:"Kanazawa",
+   overview:"Move to Kanazawa. Afternoon Kenrokuen + Higashi Chaya geisha district + Omicho seafood.",
+   transit:"Thunderbird Limited Express Kyoto→Kanazawa (~2 h 15 min). Then local bus + walk.",
+   pois:[
+    {name:"Kenrokuen Garden",lat:36.5624,lng:136.6624,desc:"One of Japan's three great gardens; landscape masterpiece."},
+    {name:"Kanazawa Castle",lat:36.5644,lng:136.6593,desc:"Reconstructed castle complex adjacent to Kenrokuen."},
+    {name:"Higashi Chaya District",lat:36.5722,lng:136.6669,desc:"Preserved geisha district with tea houses + craft shops."},
+    {name:"Omicho Market",lat:36.5712,lng:136.6571,desc:"Kanazawa's central market; fresh seafood + lunch counters."},
+    {name:"21st Century Museum",lat:36.5604,lng:136.6586,desc:"Contemporary art museum (Leandro Erlich pool)."}
+   ]},
+  {n:13, title:"Shirakawa-go day-trip", base:"Kanazawa",
+   overview:"UNESCO gassho-zukuri farmhouses. Half-day excursion plus Kanazawa evening.",
+   transit:"Highway bus Kanazawa→Shirakawa-go (~1 h 25 min each way). Reserve seats in advance.",
+   pois:[
+    {name:"Shirakawa-go (Ogimachi village)",lat:36.2580,lng:136.9067,desc:"Main UNESCO village; thatched A-frame farmhouses."},
+    {name:"Shiroyama Viewpoint",lat:36.2615,lng:136.9090,desc:"Iconic overhead view of the village; 15-min walk uphill."},
+    {name:"Wada House",lat:36.2587,lng:136.9080,desc:"Largest open-to-public gassho-zukuri farmhouse interior."}
+   ],
+   accommodationAfter:"t4"},
+  {n:14, title:"⚠ Move to Matsumoto · Castle + Narai-juku", base:"Matsumoto", warn:true,
+   overview:"⚠ ORIGINAL Day 14 listed 5 Nagano spots (Kamikochi + Narai-juku + Kirigamine + Hakuba Iwatake + Togakushi) — impossible in one day. Picked Matsumoto Castle morning + Narai-juku afternoon as the realistic Kiso-Valley cluster. The other Nagano spots become candidates for a future Alps-only trip.",
+   transit:"Kanazawa→Toyama Hokuriku Shinkansen → Toyama→Matsumoto Limited Express (~3 h). Then Matsumoto→Narai by Limited Express (~50 min one stop).",
+   pois:[
+    {name:"Matsumoto Castle",lat:36.2384,lng:137.9690,desc:"One of 12 surviving original Japanese castles; unique black 'Crow' keep."},
+    {name:"Nakamachi-dori (Matsumoto)",lat:36.2336,lng:137.9700,desc:"Historic merchant street with kura warehouses + crafts."},
+    {name:"Narai-juku",lat:35.9602,lng:137.8201,desc:"Longest preserved Nakasendo post town — 1 km of wooden facades."}
+   ],
+   accommodationAfter:"t5"},
+  {n:15, title:"⚠ Long travel day · Matsuyama + Dogo Onsen", base:"Matsuyama", warn:true,
+   overview:"⚠ ORIGINAL Day 15 added Iyonada Monogatari + Yosan Line scenic trains on the same day as transit from Nagano Alps to Matsuyama. The cross-Japan move alone is 6–7 h. Trimmed to: travel day + Dogo Onsen evening soak. Add scenic trains to Day 16 if schedules align.",
+   transit:"Train Matsumoto→Nagoya Limited Express (~2.5 h) → fly NGO→MYJ (~1.5 h) + airport bus to Matsuyama (~40 min). ~6 h door-to-door.",
+   pois:[
+    {name:"Dogo Onsen Honkan",lat:33.8519,lng:132.7861,desc:"Historic 1894 wooden bathhouse; inspired Spirited Away. Reopened 2024 after major restoration."},
+    {name:"Bocchan Train",lat:33.8520,lng:132.7860,desc:"Vintage steam-locomotive replica tram between central Matsuyama and Dogo."}
+   ],
+   accommodationAfter:"t6"},
+  {n:16, title:"⚠ Kochi · Castle + Hirome + Godaisan", base:"Kochi", warn:true,
+   overview:"⚠ ORIGINAL Day 16 listed 8 Kochi POIs — too dense. Split: morning central (Castle + Hirome + Harimayabashi); afternoon Godaisan (Chikurin-ji + Makino + Observatory). Katsurahama moved to Day 17 if convenient.",
+   transit:"Matsuyama→Kochi by JR Nanpu Limited Express (~3 h, only 5 trains/day). Tram + bus locally.",
+   pois:[
+    {name:"Kochi Castle",lat:33.5610,lng:133.5310,desc:"One of 12 surviving original castles."},
+    {name:"Hirome Market",lat:33.5618,lng:133.5379,desc:"Indoor food-stall hall; katsuo-no-tataki (seared bonito) is the dish."},
+    {name:"Harimayabashi Bridge",lat:33.5589,lng:133.5418,desc:"Small landmark bridge in central Kochi."},
+    {name:"Chikurin-ji Temple",lat:33.5460,lng:133.5773,desc:"Pilgrimage temple #31; on Godaisan hill."},
+    {name:"Makino Botanical Garden",lat:33.5460,lng:133.5780,desc:"Large botanical garden adjacent to Chikurin-ji."},
+    {name:"Godaisan Observatory",lat:33.5450,lng:133.5740,desc:"Viewpoint over Kochi city + bay."}
+   ],
+   accommodationAfter:"t7"},
+  {n:17, title:"⚠ Western Kochi · Shimanto + Cape Ashizuri", base:"Tosashimizu / Shimanto", warn:true,
+   overview:"⚠ ORIGINAL Day 17 listed 8 western-Kochi POIs as a single day from Kochi City — physically impossible (5 h+ driving alone). Trimmed to a realistic overnight: morning Shimanto River + afternoon Cape Ashizuri sunset, sleep in Tosashimizu. Kashiwajima becomes Day 18 morning option.",
+   transit:"Rental car STRONGLY recommended. Kochi City→Shimanto Town (~2 h drive) → Cape Ashizuri (~1.5 h further). Train alternative: JR Yodo Line + bus, 4 h+ each way.",
+   pois:[
+    {name:"Sada Submersible Bridge",lat:32.9850,lng:132.8810,desc:"Low-water bridge designed to submerge during floods; iconic."},
+    {name:"Shimanto River Cruise",lat:32.9960,lng:132.9330,desc:"Boat tour on 'Japan's last clear river'."},
+    {name:"Cape Ashizuri",lat:32.7240,lng:133.0160,desc:"Southernmost Shikoku; Pacific cliffs + lighthouse."},
+    {name:"Hakusan Cave Gate",lat:32.7370,lng:132.9910,desc:"Sea cave + coastal gate near Tosashimizu."}
+   ],
+   accommodationAfter:"t8"},
+  {n:18, title:"⚠ Travel to Kyushu · Takachiho Gorge", base:"Takachiho area", warn:true,
+   overview:"⚠ ORIGINAL Day 18 jumped from western Kochi to Takachiho + Kamishikimi as a single day — requires flight + 3 h drive, then second 1 h drive. Trimmed: travel + Takachiho only. Kamishikimi → Day 19 morning.",
+   transit:"Drive Cape Ashizuri→Kochi Airport (KCZ) ~3 h → fly KCZ→KMI (Miyazaki) or KCZ→FUK (Fukuoka). Rental car KMI→Takachiho ~3 h. Long day — start early.",
+   pois:[
+    {name:"Takachiho Gorge",lat:32.7100,lng:131.3070,desc:"Dramatic basalt-column gorge with row-boats and Manai Falls."},
+    {name:"Amano Iwato Shrine",lat:32.7770,lng:131.3940,desc:"Sun-goddess myth site; cave shrine where Amaterasu hid."}
+   ]},
+  {n:19, title:"Kamishikimi + onsen-or-ceramics choice", base:"Kyushu",
+   overview:"Morning forest shrine, then choose ONE direction: (A) Yufuin/Beppu onsen (Oita), (B) Yamaga Onsen (Kumamoto), or (C) Arita/Imari ceramics (Saga).",
+   transit:"Drive Takachiho→Kamishikimi Kumanoimasu (~1 h). Then 2–3 h drive depending on choice.",
+   pois:[
+    {name:"Kamishikimi Kumanoimasu Shrine",lat:32.8790,lng:131.1190,desc:"Atmospheric forest shrine in Kumamoto often seen in reels."},
+    {name:"Yamaga Onsen",lat:33.0160,lng:130.6910,desc:"Choice B — Kumamoto onsen town with traditional atmosphere."},
+    {name:"Yufuin Onsen",lat:33.2620,lng:131.3580,desc:"Choice A — quaint onsen town under Mt Yufu; art museums."},
+    {name:"Arita",lat:33.1840,lng:129.8820,desc:"Choice C — historic porcelain town."},
+    {name:"Imari",lat:33.2640,lng:129.8810,desc:"Choice C — porcelain trading port (paired with Arita)."}
+   ],
+   accommodationAfter:"t9"},
+  {n:20, title:"Finale (choose ONE) · Okinawa | Yakushima | Hiroshima", base:"Finale region",
+   overview:"Pick your finale. (A) Okinawa Kabira Bay — flight required, beach finale. (B) Yakushima ancient cedars — flight + jet foil, hiking finale. (C) Hiroshima/Yamaguchi coast — rail-accessible.",
+   transit:"A: fly to ISG (Ishigaki) via Naha. B: fly to Kagoshima → ferry to Yakushima. C: Shinkansen to Hiroshima (~3 h from Kyushu).",
+   pois:[
+    {name:"Kabira Bay (A)",lat:24.4590,lng:124.1440,desc:"Iconic Ishigaki bay; turquoise water + glass-bottom boats."},
+    {name:"Yakushima — Shiratani Unsuikyo (B)",lat:30.3500,lng:130.5450,desc:"Ancient moss forest; Princess Mononoke aesthetic."},
+    {name:"Mt Miyanoura, Yakushima (B)",lat:30.3360,lng:130.5040,desc:"Highest peak in Kyushu — multi-day climb for the very fit."},
+    {name:"Miyajima Itsukushima Shrine (C)",lat:34.2961,lng:132.3197,desc:"Floating torii gate; Hiroshima ferry day-trip."},
+    {name:"Tsunoshima Bridge (C)",lat:34.3520,lng:130.8840,desc:"Yamaguchi coastal bridge often shown in travel reels."}
+   ]},
+  {n:21, title:"Buffer + departure", base:"Finale or transfer",
+   overview:"Use as weather buffer for finale OR return to Tokyo/Osaka for international departure. Build in 4 h+ buffer.",
+   transit:"Plan to be back at HND/NRT or KIX with significant margin. Domestic→international layovers in Japan often need separate ticketing + bag re-check.",
+   pois:[
+    {name:"Motonosumi Inari Shrine (C buffer)",lat:34.4210,lng:131.0600,desc:"Yamaguchi coast — 123 red torii sequence over the cliff."},
+    {name:"Hagi Samurai District (C buffer)",lat:34.4080,lng:131.3990,desc:"Preserved Edo samurai district; clay-walled lanes."}
+   ]}
+];
+
+const ACCOMMODATIONS = {
+  t1:{title:"Move from Kamakura/Enoshima → Tokyo", nights:4, summary:"Tokyo base for Days 4–7. Family-shape suite or 2-room layout. Up-to-$900/night ceiling.",
+      options:[
+        {name:"Hotel New Otani — Garden Tower Suite",meta:"~$700–900/night · 74 m² · 4 single beds",desc:"Within budget; 10-acre Japanese garden + pool on-site. Akasaka location, JR/metro convenient.",book:"https://www.newotani.co.jp/en/tokyo/",alt:"https://www.booking.com/hotel/jp/new-otani-tokyo-garden-tower.html"},
+        {name:"Andaz Tokyo Toranomon Hills",meta:"~$650–850/night · modern luxury",desc:"Top-tier service + 51st-floor bar. Walkable to Ginza/Roppongi. Family-friendly with kids' programme.",book:"https://www.hyatt.com/andaz/en-US/tyoaz-andaz-tokyo-toranomon-hills",alt:"https://www.booking.com/hotel/jp/andaz-tokyo.html"},
+        {name:"Imperial Hotel Tokyo",meta:"~$500–700/night · classic + central",desc:"Iconic, near Ginza + Imperial Palace. Twin connecting rooms work for family of 4.",book:"https://www.imperialhotel.co.jp/e/tokyo/",alt:"https://www.booking.com/hotel/jp/imperial.html"}
+      ]},
+  t2:{title:"Move from Tokyo → Kyoto", nights:4, summary:"Kyoto base for Days 8–11. Hyatt Regency confirmed candidate (90 m² Family Suite); machiya whole-house alternative for the second half.",
+      options:[
+        {name:"Hyatt Regency Kyoto — Family Suite",meta:"~$700–950/night · 90 m² + 35 m² balcony",desc:"L-shaped, 2 twin bedrooms, top floor. 10 min taxi to Fushimi Inari for Day 10 dawn. Walking to Higashiyama.",book:"https://www.hyatt.com/hyatt-regency/en-US/kyoto-hyatt-regency-kyoto",alt:"https://www.booking.com/hotel/jp/hyatt-regency-kyoto.html"},
+        {name:"The Thousand Kyoto",meta:"~$350–550/night · right at Kyoto Station",desc:"Sleek + transit-convenient. Better for the Day 8 arrival + Day 11 onward Shinkansen.",book:"https://www.keihanhotels-resorts.co.jp/the-thousand-kyoto/",alt:"https://www.booking.com/hotel/jp/the-thousand-kyoto.html"},
+        {name:"The Gion House Lower Level (Old Kyoto)",meta:"~$500–800/night · whole-house machiya",desc:"2 BR · max 4 · full kitchen · stone soaking tub · inner garden. Replace 1–2 nights of hotel for the Gion-immersion finale.",book:"https://www.oldkyoto.com/properties",alt:"https://www.airbnb.com/"}
+      ]},
+  t3:{title:"Move from Kyoto → Kanazawa", nights:2, summary:"Kanazawa base for Days 12–13 only. Walkable city; near Kanazawa Station.",
+      options:[
+        {name:"Hyatt Centric Kanazawa",meta:"~$250–400/night · right at Kanazawa Station",desc:"Modern, walkable to Kenrokuen + Omicho. Best transit access for Shirakawa-go bus.",book:"https://www.hyatt.com/hyatt-centric/en-US/kmqct-hyatt-centric-kanazawa",alt:"https://www.booking.com/hotel/jp/hyatt-centric-kanazawa.html"},
+        {name:"Hotel Nikko Kanazawa",meta:"~$200–350/night · Station-side high-rise",desc:"Reliable JAL-group hotel; family rooms available; multiple restaurants on-site.",book:"https://www.hnkanazawa.jp/en/",alt:"https://www.booking.com/hotel/jp/nikko-kanazawa.html"},
+        {name:"Kanazawa Tokyu Hotel",meta:"~$200–300/night · between station + Kenrokuen",desc:"Solid mid-range with good location for both old-town and station; family rooms available.",book:"https://www.tokyuhotels.co.jp/kanazawa-h/",alt:"https://www.booking.com/hotel/jp/tokyu-kanazawa.html"}
+      ]},
+  t4:{title:"Move from Kanazawa → Matsumoto / Kiso Valley", nights:1, summary:"One night only — Matsumoto for Day 14 (Castle + Narai-juku trip). Pick value or onsen ryokan.",
+      options:[
+        {name:"Matsumoto Hotel Kagetsu",meta:"~$200–350/night · historic, near castle",desc:"1887 Western-style hotel; recently renovated. 5-min walk from Matsumoto Castle.",book:"https://www.hotel-kagetsu.jp/en/",alt:"https://www.booking.com/hotel/jp/matsumoto-kagetsu.html"},
+        {name:"Hotel Buena Vista Matsumoto",meta:"~$150–250/night · modern, near station",desc:"Tallest hotel in Matsumoto; Alps views from upper floors; convenient for the morning castle + afternoon Narai trip.",book:"https://www.buena-vista.co.jp/",alt:"https://www.booking.com/hotel/jp/buena-vista.html"},
+        {name:"Onyado Nono Matsumoto (onsen)",meta:"~$150–220/night · in-hotel onsen",desc:"Ryokan-style hotel with rooftop onsen; family-friendly, near station.",book:"https://www.hotespa.net/onsen/hotellist/nonomatsumoto/",alt:"https://www.booking.com/hotel/jp/onyado-nono-matsumoto.html"}
+      ]},
+  t5:{title:"Move from Matsumoto → Matsuyama (Shikoku)", nights:1, summary:"Long fly day — single overnight in Dogo Onsen district. Pick a historic ryokan if budget allows.",
+      options:[
+        {name:"Yamatoya Honten",meta:"~$300–500/night · historic Dogo ryokan",desc:"Across from Dogo Onsen Honkan bathhouse; tatami rooms + kaiseki. The full Dogo experience.",book:"https://www.yamatoyahonten.com/",alt:"https://www.booking.com/hotel/jp/yamatoya-honten.html"},
+        {name:"Funaya Ryokan",meta:"~$400–650/night · luxury ryokan",desc:"Showa-emperor's choice when visiting Matsuyama; large family rooms + private baths.",book:"https://www.dogo-funaya.co.jp/",alt:"https://www.booking.com/hotel/jp/funaya.html"},
+        {name:"Hotel JAL City Matsuyama",meta:"~$150–220/night · downtown",desc:"Mid-range, near JR station; better if you want non-onsen + tram access to Dogo.",book:"https://matsuyama.jalcity.co.jp/",alt:"https://www.booking.com/hotel/jp/jal-city-matsuyama.html"}
+      ]},
+  t6:{title:"Move from Matsuyama → Kochi", nights:1, summary:"One night in central Kochi — walkable to Castle, Hirome Market, Harimayabashi.",
+      options:[
+        {name:"The Crowne Plaza ANA Kochi",meta:"~$150–220/night · central",desc:"Reliable ANA-group hotel; family rooms + breakfast included on most rates; near Hirome.",book:"https://www.ihg.com/crowneplaza/hotels/us/en/kochi/kchhk/hoteldetail",alt:"https://www.booking.com/hotel/jp/crowne-plaza-ana-kochi.html"},
+        {name:"Hotel Nikko Kochi Asahi Royal",meta:"~$130–200/night · near Hirome Market",desc:"Solid mid-range with rooftop onsen; quiet despite central location.",book:"https://www.nikko-kochi.jp/",alt:"https://www.booking.com/hotel/jp/nikko-kochi-asahi-royal.html"},
+        {name:"Joseikan",meta:"~$200–350/night · historic Tosa ryokan",desc:"110-year-old Kochi ryokan with tatami rooms + onsen; near Harimayabashi.",book:"https://en.joseikan.co.jp/",alt:"https://www.booking.com/hotel/jp/joseikan.html"}
+      ]},
+  t7:{title:"Move from Kochi City → Western Kochi (Tosashimizu / Shimanto)", nights:1, summary:"Remote night for the Day 17 Cape Ashizuri / Shimanto loop. Limited options — rental car essential.",
+      options:[
+        {name:"Ashizuri Kokusai Hotel",meta:"~$200–280/night · Cape Ashizuri cliff",desc:"Cliff-top hotel at the cape itself; sunrise/sunset views; aging but unique location.",book:"http://www.ashizuri.co.jp/",alt:"https://www.booking.com/hotel/jp/ashizuri-kokusai.html"},
+        {name:"Hotel Nestmore Kashiwajima",meta:"~$200–350/night · Kashiwajima island",desc:"Small-island stay at the clear-water spot; ferry-only access; book very early.",book:"https://www.google.com/maps/search/?api=1&query=Hotel+Nestmore+Kashiwajima",alt:"https://www.booking.com/hotel/jp/nestmore-kashiwajima.html"},
+        {name:"Tosashimizu Star Hotel",meta:"~$130–200/night · Tosashimizu town",desc:"Plain mid-range business-class; convenient base for both cape + Shimanto.",book:"https://www.google.com/maps/search/?api=1&query=Tosashimizu+Star+Hotel",alt:"https://www.booking.com/hotel/jp/tosashimizu.html"}
+      ]},
+  t8:{title:"Move from Western Kochi → Kyushu", nights:2, summary:"Two nights in central Kyushu for Days 18–19. Pick onsen ryokan if budget allows.",
+      options:[
+        {name:"Takachiho Solest Hotel",meta:"~$170–280/night · central Takachiho",desc:"Modern hotel walking-distance to the gorge; convenient for the Amano Iwato evening light show.",book:"https://www.solest-takachiho.jp/",alt:"https://www.booking.com/hotel/jp/solest-takachiho.html"},
+        {name:"Yufuin Tamanoyu",meta:"~$400–700/night · onsen ryokan",desc:"If picking Day 19 Choice A (Yufuin onsen) — exceptional kaiseki + private baths. Drive from Takachiho ~2.5 h.",book:"https://www.tamanoyu.co.jp/",alt:"https://www.booking.com/hotel/jp/tamanoyu.html"},
+        {name:"Hotel Nikko Kumamoto",meta:"~$150–220/night · central Kumamoto",desc:"Best base if Day 19 picks Yamaga Onsen choice. Near Kumamoto Castle + airport.",book:"https://www.nikko-kumamoto.co.jp/",alt:"https://www.booking.com/hotel/jp/nikko-kumamoto.html"}
+      ]},
+  t9:{title:"Move to finale region (Days 20–21)", nights:2, summary:"Final 2 nights depend on finale choice. (A) Okinawa, (B) Yakushima, or (C) Hiroshima/Yamaguchi.",
+      options:[
+        {name:"(A) Club Med Kabira Ishigaki",meta:"~$1000–1400/night all-inclusive",desc:"All-in resort on Kabira Bay; Petit Club + Junior Club ages perfectly for 5 + 13.",book:"https://www.clubmed.us/r/kabira-ishigaki/y",alt:"https://www.booking.com/hotel/jp/club-med-kabira.html"},
+        {name:"(B) Sankara Hotel & Spa Yakushima",meta:"~$400–700/night · luxury ryokan-resort",desc:"Quiet boutique resort on Yakushima; spa + Relais & Châteaux. Pair with Shiratani forest hike.",book:"https://www.sankarahotel-spa.com/en/",alt:"https://www.booking.com/hotel/jp/sankara.html"},
+        {name:"(C) Sheraton Grand Hiroshima",meta:"~$200–350/night · right at Hiroshima Station",desc:"Most convenient finale if you want to skip flights; Shinkansen to Tokyo/Kyoto for departure.",book:"https://www.marriott.com/en-us/hotels/hijsi-sheraton-grand-hiroshima-hotel/overview/",alt:"https://www.booking.com/hotel/jp/sheraton-grand-hiroshima.html"}
+      ]}
+};
+
+// =============================================================
+// OVERVIEW MAP — English tiles + numbered day-zone bounding boxes
+// =============================================================
+const overviewMap = L.map('overviewMap', { scrollWheelZoom:true, zoomControl:true }).setView([35.4, 136.5], 5);
+L.tileLayer(TILE_URL, { attribution: TILE_ATTRIB, maxZoom: 18, subdomains:'abcd' }).addTo(overviewMap);
+
+const allBounds = [];
+DAYS.forEach(d => {
+  const lats = d.pois.map(p=>p.lat);
+  const lngs = d.pois.map(p=>p.lng);
+  let south = Math.min(...lats), north = Math.max(...lats);
+  let west = Math.min(...lngs), east = Math.max(...lngs);
+  // Pad a bit so single-point days have a visible rectangle
+  const padLat = Math.max(0.04, (north - south) * 0.4);
+  const padLng = Math.max(0.04, (east - west) * 0.4);
+  south -= padLat; north += padLat; west -= padLng; east += padLng;
+  const bbox = [[south,west],[north,east]];
+  allBounds.push([south,west]); allBounds.push([north,east]);
+  const color = d.warn ? '#c14a3a' : '#1c1c1c';
+  const rect = L.rectangle(bbox, { color, weight:1.5, fillOpacity:0.05, dashArray:'4 4' }).addTo(overviewMap);
+  rect.bindPopup(`<b>Day ${d.n} — ${d.title}</b><br><em style="color:#6e6a64">${d.base}</em><br>${d.overview}`);
+  // Numbered label at top-left corner of bbox
+  const label = L.divIcon({
+    className:'',
+    html:`<div class="day-pin-marker${d.warn?' warn':''}">${d.n}</div>`,
+    iconSize:[30,30], iconAnchor:[15,15]
+  });
+  L.marker([north, west], { icon: label, riseOnHover: true })
+    .addTo(overviewMap)
+    .bindPopup(`<b>Day ${d.n} — ${d.title}</b><br><em>${d.base}</em><br>${d.overview}<br><a href="#day-${d.n}" onclick="event.preventDefault();document.getElementById('day-${d.n}').scrollIntoView({behavior:'smooth'});">Jump to day ↓</a>`);
+});
+
+if (allBounds.length) overviewMap.fitBounds(allBounds, { padding:[20,20] });
+
+// Connect day zones in order (centroid polyline)
+const centroids = DAYS.map(d => {
+  const lats = d.pois.map(p=>p.lat); const lngs = d.pois.map(p=>p.lng);
+  return [(Math.min(...lats)+Math.max(...lats))/2, (Math.min(...lngs)+Math.max(...lngs))/2];
+});
+L.polyline(centroids, { color:'#1c1c1c', weight:1.5, opacity:0.35, dashArray:'2 6' }).addTo(overviewMap);
+
+// =============================================================
+// DAY NAV BAR
+// =============================================================
+const dayNav = document.getElementById('dayNav');
+DAYS.forEach(d => {
+  const a = document.createElement('a');
+  a.href = `#day-${d.n}`;
+  a.textContent = `${d.n}`;
+  a.title = d.title;
+  if (d.warn) a.classList.add('warn');
+  dayNav.appendChild(a);
+});
+
+// =============================================================
+// DAY CARDS + ACCOMMODATION GATES + PER-DAY MINI-MAPS
+// =============================================================
+const dayList = document.getElementById('dayList');
+
+function renderDay(d) {
+  const card = document.createElement('article');
+  card.className = 'day';
+  card.id = `day-${d.n}`;
+  card.innerHTML = `
+    <div class="day-head">
+      <div class="day-num"><span class="n">${d.n}</span><span>Day</span></div>
+      <div class="day-title-block">
+        <div class="day-title">${d.title}</div>
+        <div class="day-base">Base: ${d.base}</div>
+      </div>
+      <div class="day-flag${d.warn?' warn':''}">${d.warn?'⚠ rebalanced':'OK'}</div>
+    </div>
+    <div class="day-body">
+      <div class="row">
+        <div>
+          <div class="kv"><div class="lab">Overview</div><div class="val">${d.overview}</div></div>
+          <div class="kv${d.transit.includes('⚠')?' warn':''}"><div class="lab">Transit</div><div class="val">${d.transit}</div></div>
+          <div class="kv"><div class="lab">Points of interest</div>
+            <ol class="poi-list">
+              ${d.pois.map(p=>`<li><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.name)}" target="_blank" rel="noopener">${p.name}</a><small>${p.desc}</small></li>`).join('')}
+            </ol>
+          </div>
+        </div>
+        <div>
+          <div class="kv"><div class="lab">Day map · static</div></div>
+          <div class="mini-map" id="mini-${d.n}"></div>
+        </div>
+      </div>
+    </div>
+  `;
+  dayList.appendChild(card);
+
+  // Initialize the static mini-map (Leaflet, all interactions disabled)
+  const mini = L.map(`mini-${d.n}`, {
+    dragging:false, touchZoom:false, doubleClickZoom:false, scrollWheelZoom:false,
+    boxZoom:false, keyboard:false, zoomControl:false, attributionControl:false
+  });
+  L.tileLayer(TILE_URL, { maxZoom: 16, subdomains:'abcd' }).addTo(mini);
+  const latlngs = d.pois.map(p => [p.lat, p.lng]);
+  d.pois.forEach((p, i) => {
+    const icon = L.divIcon({
+      className:'',
+      html:`<div class="poi-dot${i===0?' first':''}"></div>`,
+      iconSize:[14,14], iconAnchor:[7,7]
+    });
+    L.marker([p.lat, p.lng], { icon }).addTo(mini).bindTooltip(`${i+1}. ${p.name}`, { permanent:false });
+  });
+  if (latlngs.length > 1) {
+    L.polyline(latlngs, { color:'#1c1c1c', weight:2, opacity:0.6, dashArray:'4 5' }).addTo(mini);
+    mini.fitBounds(latlngs, { padding:[18,18], maxZoom: 13 });
+  } else if (latlngs.length === 1) {
+    mini.setView(latlngs[0], 12);
+  }
+}
+
+function renderAccommodation(key) {
+  const a = ACCOMMODATIONS[key];
+  if (!a) return;
+  const div = document.createElement('aside');
+  div.className = 'lodging';
+  div.innerHTML = `
+    <div class="lodging-head">
+      <div class="lodging-icon">⌂</div>
+      <h3>Accommodation gate — ${a.title}</h3>
+      <span class="nights">${a.nights} night${a.nights>1?'s':''}</span>
+    </div>
+    <div class="lodging-summary">${a.summary}</div>
+    <div class="opt-grid">
+      ${a.options.map(o=>`
+        <div class="opt">
+          <h4>${o.name}</h4>
+          <div class="meta">${o.meta}</div>
+          <div class="desc">${o.desc}</div>
+          <div class="links">
+            <a href="${o.book}" target="_blank" rel="noopener">Book direct →</a>
+            <a class="alt" href="${o.alt}" target="_blank" rel="noopener">Booking.com</a>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+  dayList.appendChild(div);
+}
+
+DAYS.forEach(d => {
+  renderDay(d);
+  if (d.accommodationAfter) renderAccommodation(d.accommodationAfter);
+});
+</script>
+</body>
+</html>
