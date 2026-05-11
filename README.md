@@ -6,8 +6,9 @@ A single-file HTML planning page for an exploratory 21-day trip across Japan: Ka
 
 | File | Description |
 |---|---|
-| [`index.html`](./index.html) | Latest version (v3.2). Open in a browser. |
-| [`japan_21_day_map_itinerary_v3-2.html`](./japan_21_day_map_itinerary_v3-2.html) | v3.2 with English-labelled map, numbered day-zone bounding boxes, per-day overview + transit + static mini-map, and accommodation gates between every base change. |
+| [`index.html`](./index.html) | Latest version (v3.3). Open in a browser. |
+| [`japan_21_day_map_itinerary_v3-3.html`](./japan_21_day_map_itinerary_v3-3.html) | v3.3 — different itinerary shape: Kamakura/Enoshima · Tokyo (parks · museums · taste) · Nikko ryokan · Kyoto-region ryokan · **Third region with 3 options** (Nagano · Tohoku · San'in) · **White-beach finale with 2 options** (Wakayama Shirahama · Okinawa Taketomi). Adds CHOICE-gate styling. |
+| [`japan_21_day_map_itinerary_v3-2.html`](./japan_21_day_map_itinerary_v3-2.html) | v3.2 — wide-Japan explorer plan: Kanto coast → Tokyo → Kyoto → Hokuriku → Kiso/Alps → Shikoku → Kyushu → finale choice. |
 | [`japan_21_day_map_itinerary_v3-1.html`](./japan_21_day_map_itinerary_v3-1.html) | v3.1 (original) — kept as historical reference. Japanese-labelled tiles, single per-day map, no accommodation gates. |
 
 ## v3.2 features
