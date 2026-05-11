@@ -6,8 +6,9 @@ A single-file HTML planning page for an exploratory 21-day trip across Japan: Ka
 
 | File | Description |
 |---|---|
-| [`index.html`](./index.html) | Latest version (v3.4). Open in a browser. |
-| [`japan_21_day_map_itinerary_v3-4.html`](./japan_21_day_map_itinerary_v3-4.html) | v3.4 — Days 1–9 LOCKED from v3.3 (Kamakura · Tokyo · Nikko). Days 10–21 driven by the **Japan Travel Guide PDF** in the repo: Karuizawa → Hokuto/Yatsugatake (insider villa-country pick — Suntory Hakushu, Risonare, horseback) → Kyoto + Nara (Kyoto Railway Museum, Fushimi dawn, Nara deer) → Shirahama white beach (Adventure World panda finale). |
+| [`index.html`](./index.html) | Latest version (v3.5). Open in a browser. |
+| [`japan_21_day_map_itinerary_v3-5.html`](./japan_21_day_map_itinerary_v3-5.html) | v3.5 — **luggage-minimized two-hub model**. Only 3 full-luggage moves in 21 days (HND→Tokyo, Tokyo→Kyoto, Kyoto→HND). Side-trips run with daypacks while suitcases stay at the hub hotel: Kamakura/Enoshima · Nikko+Kinugawa · Karuizawa+Hokuto from Tokyo Hub; Shirahama from Kyoto Hub. Adds hub-vs-side-trip visual styling and per-day luggage/sleep indicators. |
+| [`japan_21_day_map_itinerary_v3-4.html`](./japan_21_day_map_itinerary_v3-4.html) | v3.4 — Days 1–9 LOCKED from v3.3 (Kamakura · Tokyo · Nikko). Days 10–21 driven by the **Japan Travel Guide PDF** in the repo: Karuizawa → Hokuto/Yatsugatake (insider) → Kyoto + Nara → Shirahama (Adventure World). |
 | [`japan_21_day_map_itinerary_v3-3.html`](./japan_21_day_map_itinerary_v3-3.html) | v3.3 — Kamakura/Enoshima · Tokyo (parks · museums · taste) · Nikko ryokan · Kyoto-region ryokan · **Third region with 3 options** (Nagano · Tohoku · San'in) · **White-beach finale with 2 options** (Wakayama Shirahama · Okinawa Taketomi). |
 | [`japan_21_day_map_itinerary_v3-2.html`](./japan_21_day_map_itinerary_v3-2.html) | v3.2 — wide-Japan explorer plan: Kanto coast → Tokyo → Kyoto → Hokuriku → Kiso/Alps → Shikoku → Kyushu → finale choice. |
 | [`japan_21_day_map_itinerary_v3-1.html`](./japan_21_day_map_itinerary_v3-1.html) | v3.1 (original) — kept as historical reference. |
